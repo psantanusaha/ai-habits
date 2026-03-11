@@ -136,12 +136,13 @@ Setting up an effective Claude Code environment is documented — in Anthropic's
 ## Install
 
 ```bash
-pip install 'ai-habits[ml]'
+pip install ai-habits        # works immediately, uses TF-IDF clustering
+pip install 'ai-habits[ml]'  # adds neural embeddings for better accuracy (~500MB)
 ```
 
-> Pulls in PyTorch via sentence-transformers (~500MB on first run) for local embedding. All conversation data stays on your machine — nothing leaves unless you opt into LLM classification.
-
 **Requirements:** Python 3.11+, Claude Code with existing conversation history (`~/.claude/projects/`)
+
+> The base install uses TF-IDF (scikit-learn) for clustering — no PyTorch, no large downloads. The `[ml]` extra adds `sentence-transformers` with the `all-MiniLM-L6-v2` model for better semantic clustering. All processing stays on your machine.
 
 ---
 

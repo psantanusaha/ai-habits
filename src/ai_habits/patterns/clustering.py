@@ -112,12 +112,12 @@ def cluster(
 
     texts = [m.text for m in messages]
 
-    # Import here so the module is importable even if sentence-transformers is absent
-    from ai_habits.utils.embeddings import embed
+    from ai_habits.utils.embeddings import embed, neural_available
     from sklearn.cluster import DBSCAN
 
-    logger.info("Embedding %d messages...", len(texts))
-    embeddings = embed(texts)  # shape (N, 384), L2-normalized
+    backend = "neural" if neural_available() else "tfidf"
+    logger.info("Embedding %d messages with %s backend...", len(texts), backend)
+    embeddings = embed(texts)  # shape (N, D), L2-normalized
 
     # DBSCAN with cosine metric.
     # eps = 1 - similarity_threshold (since embeddings are normalized, euclidean ≈ cosine).

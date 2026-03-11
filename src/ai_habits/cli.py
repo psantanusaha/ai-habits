@@ -64,16 +64,12 @@ def scan(
     from ai_habits.patterns import clustering, classifier, anti_patterns
     from ai_habits.generators.report import print_scan_report, save_scan_results
 
-    # Check ml deps are available before doing any work
-    try:
-        import sentence_transformers  # noqa: F401
-        import sklearn  # noqa: F401
-    except ImportError:
+    from ai_habits.utils.embeddings import neural_available
+    if not neural_available():
         console.print(
-            "[red]Missing dependencies for scan.[/red]\n"
-            "Run: [bold]pip install 'ai-habits[ml]'[/bold]"
+            "[dim]Using TF-IDF clustering (keyword-based). "
+            "For better accuracy: [bold]pip install 'ai-habits[ml]'[/bold][/dim]\n"
         )
-        raise SystemExit(1)
 
     since = _parse_since(last)
 

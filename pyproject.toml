@@ -25,19 +25,19 @@ classifiers = [
     "Topic :: Utilities",
 ]
 
-# Core dependencies — kept minimal
+# Core dependencies — scan works out of the box with TF-IDF clustering
 # sentence-transformers is in [ml] extras because it pulls in PyTorch (~500MB)
 dependencies = [
     "click>=8.1",
     "rich>=13.0",
     "numpy>=1.26",
+    "scikit-learn>=1.4",
 ]
 
 [project.optional-dependencies]
-# Required for scan command (clustering)
+# Adds neural embeddings (all-MiniLM-L6-v2) for better clustering accuracy
 ml = [
     "sentence-transformers>=3.0",
-    "scikit-learn>=1.4",
 ]
 # Required for LLM classification pass
 llm = [
@@ -46,20 +46,18 @@ llm = [
 # Install everything
 all = [
     "sentence-transformers>=3.0",
-    "scikit-learn>=1.4",
     "anthropic>=0.25",
 ]
-# Minimal dev deps — no PyTorch, CI-safe
+# CI-safe — no PyTorch, sklearn is already in core deps
 dev = [
     "pytest>=8.0",
     "pytest-cov",
 ]
-# Full local dev with all features
+# Full local dev with neural embeddings
 dev-full = [
     "pytest>=8.0",
     "pytest-cov",
     "sentence-transformers>=3.0",
-    "scikit-learn>=1.4",
     "anthropic>=0.25",
 ]
 

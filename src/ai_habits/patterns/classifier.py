@@ -88,6 +88,8 @@ def _category_centroids() -> dict[str, np.ndarray]:
 
     Cached for the process lifetime — embeddings are L2-normalised so
     cosine similarity == dot product.
+
+    Only called when sentence-transformers is available.
     """
     from ai_habits.utils.embeddings import embed
 
@@ -102,10 +104,19 @@ def _category_centroids() -> dict[str, np.ndarray]:
 
 
 def _classify_locally(text: str) -> str:
-    """Return the best-matching category for *text* using embedding similarity.
+    """Return the best-matching category for *text*.
 
-    Falls back to ``"one-off-task"`` when no category exceeds MIN_CONFIDENCE.
+    Uses embedding similarity when sentence-transformers is available,
+    keyword heuristics otherwise.
     """
+    from ai_habits.utils.embeddings import neural_available
+
+    if neural_available():
+        return _classify_by_embedding(text)
+    return _classify_by_keywords(text)
+
+
+def _classify_by_embedding(text: str) -> str:
     from ai_habits.utils.embeddings import embed
 
     vec = embed([text])[0]                       # shape (384,), normalised
@@ -120,7 +131,39 @@ def _classify_locally(text: str) -> str:
     if best_sim < _MIN_CONFIDENCE:
         return "one-off-task"
 
-    logger.debug("Local classify: '%s...' → %s (sim=%.3f)", text[:40], best_cat, best_sim)
+    logger.debug("Embedding classify: '%s...' → %s (sim=%.3f)", text[:40], best_cat, best_sim)
+    return best_cat
+
+
+# Keyword rules for the TF-IDF fallback path
+_KEYWORD_RULES: dict[str, list[str]] = {
+    "boilerplate-request": [
+        "generate", "create", "scaffold", "setup", "bootstrap",
+        "template", "boilerplate", "starter", "dockerfile", "initialize",
+    ],
+    "repeatable-workflow": [
+        "run ", "deploy", "commit", "push", "lint", "build", "release",
+        "then ", "after that", "workflow", "and then",
+    ],
+    "context-re-explanation": [
+        "this is a ", "we use ", "our stack", "the project uses",
+        "framework is", "i am using", "we are using", "tech stack",
+        "this project", "our backend", "our frontend",
+    ],
+}
+
+
+def _classify_by_keywords(text: str) -> str:
+    """Keyword heuristic classifier — used when neural model isn't available."""
+    text_lower = text.lower()
+    scores = {
+        cat: sum(1 for kw in keywords if kw in text_lower)
+        for cat, keywords in _KEYWORD_RULES.items()
+    }
+    best_cat = max(scores, key=scores.get)
+    if scores[best_cat] == 0:
+        return "one-off-task"
+    logger.debug("Keyword classify: '%s...' → %s", text[:40], best_cat)
     return best_cat
 
 

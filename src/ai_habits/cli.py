@@ -92,10 +92,28 @@ def scan(
         )
         return
 
-    console.print(f"[dim]Found {len(messages)} messages. Clustering...[/dim]")
+    # Filter noise before clustering:
+    # - Short acknowledgements ("done", "yes", "git stash them")
+    # - System-injected preambles from Claude Code skill/agent mechanism
+    _MIN_MSG_LEN = 25
+    _NOISE_PREFIXES = (
+        "base directory for this skill",
+        "[request interrupted",
+        "<local-command",
+        "<task-notification",
+        "this session is being continued",
+        "conversation so far:",
+    )
+    clusterable = [
+        m for m in messages
+        if len(m.text.strip()) >= _MIN_MSG_LEN
+        and not m.text.strip().lower().startswith(_NOISE_PREFIXES)
+    ]
+
+    console.print(f"[dim]Found {len(messages)} messages ({len(clusterable)} substantial). Clustering...[/dim]")
 
     patterns = clustering.cluster(
-        messages,
+        clusterable,
         similarity_threshold=similarity,
         min_cluster_size=min_occurrences,
     )

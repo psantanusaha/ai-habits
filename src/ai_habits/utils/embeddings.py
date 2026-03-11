@@ -24,9 +24,17 @@ MODEL_NAME = "all-MiniLM-L6-v2"
 def _load_model() -> "SentenceTransformer":
     """Load model once and cache it for the process lifetime."""
     try:
+        import contextlib
+        import io
+        import transformers
         from sentence_transformers import SentenceTransformer
+
+        transformers.logging.set_verbosity_error()  # suppress BertModel LOAD REPORT
         logger.debug("Loading sentence-transformer model: %s", MODEL_NAME)
-        return SentenceTransformer(MODEL_NAME)
+
+        # safetensors prints a "Loading weights" progress bar to stderr — suppress it
+        with contextlib.redirect_stderr(io.StringIO()):
+            return SentenceTransformer(MODEL_NAME)
     except ImportError as e:
         raise RuntimeError(
             "sentence-transformers is not installed. "

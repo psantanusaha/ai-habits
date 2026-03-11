@@ -3,7 +3,7 @@
 ## Setup
 
 ```bash
-git clone https://github.com/yourusername/ai-habits
+git clone https://github.com/psantanusaha/ai-habits
 cd ai-habits
 python3 -m venv .venv
 source .venv/bin/activate

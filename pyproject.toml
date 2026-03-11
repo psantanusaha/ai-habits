@@ -64,9 +64,9 @@ dev-full = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/ai-habits"
-Repository = "https://github.com/yourusername/ai-habits"
-Issues = "https://github.com/yourusername/ai-habits/issues"
+Homepage = "https://github.com/psantanusaha/ai-habits"
+Repository = "https://github.com/psantanusaha/ai-habits"
+Issues = "https://github.com/psantanusaha/ai-habits/issues"
 
 [project.scripts]
 ai-habits = "ai_habits.cli:cli"

@@ -1,10 +1,46 @@
 # ai-habits
 
-**ESLint for your AI assistant usage.**
+You've been using Claude Code every day. Here's what's actually happening.
 
-`ai-habits` scans your Claude Code conversation history, finds patterns in how you use AI, and tells you what to fix — generate skills, patch your CLAUDE.md, or create workflow scripts.
+---
+
+## You're re-explaining the same context over and over
+
+Claude has no memory between sessions. So every few conversations, you end up typing some version of:
+
+> *"This is a FastAPI project, we use Postgres, deployed on GCP, auth is JWT-based..."*
+
+You've done this **12 times in the last month**. Claude forgot it every time. That context belongs in your `CLAUDE.md` — but nobody told you what to put there.
+
+---
+
+## You're asking for the same boilerplate repeatedly
+
+That Docker + FastAPI scaffold you keep asking for? You've requested it **7 times** since January. Each time, Claude generates it slightly differently. Each time, you correct it to match your conventions. Each time, Claude forgets those corrections.
+
+A skill would do this in one command, consistently, every time. You don't have any skills.
+
+---
+
+## You have a workflow you type out step by step, every time
+
+> *"lint, then run tests, then commit"*
+
+9 times last month. That's a shell script. Or a slash command. It takes 2 minutes to set up and saves you 9 interactions a month — forever.
+
+---
+
+## Your CLAUDE.md is stale (if you have one at all)
+
+Most developers either don't have a `CLAUDE.md`, or wrote one 6 months ago and never touched it again. Meanwhile their stack evolved, their conventions changed, and Claude is still operating on outdated instructions.
+
+---
+
+## `ai-habits` shows you all of this
 
 ```
+$ ai-habits scan
+
 📊 Scanned 47 conversations (last 30 days)
 
 🔁 REPEATED PATTERNS
@@ -16,6 +52,7 @@
 
   2. Tech stack re-explained — 12 out of 47 conversations
      │ Type: context-re-explanation
+     │ You keep telling Claude: Python 3.11, FastAPI, Postgres, Redis, GCP
      └─ 💡 Add to CLAUDE.md → ai-habits generate patch --id pat-002
 
   3. "lint then test then commit" — 9 occurrences
@@ -24,166 +61,165 @@
 
 ⚠️  ANTI-PATTERNS
   You frequently describe your auth setup to Claude. (16 occurrences)
-  💡 Document your auth architecture in CLAUDE.md
+  💡 Document your auth architecture in CLAUDE.md — it's clearly a core
+     system Claude needs to know about every session.
 ```
 
-## Why
-
-Claude Code's `/init` generates a CLAUDE.md from your project files. That's a good start. But it doesn't know how you *actually* use Claude day-to-day:
-
-- The context you re-explain in 60% of conversations
-- The boilerplate you've asked for 8 times this month
-- The workflow you keep typing out step by step
-
-`ai-habits` reads your conversation history, surfaces these patterns, and generates the fixes — skills, CLAUDE.md additions, shell scripts.
-
-## Installation
+Then it generates the fixes:
 
 ```bash
-pip install ai-habits
+# Turn a repeated pattern into a skill
+ai-habits generate skill --id pat-001
+# → .claude/skills/fastapi-scaffold/SKILL.md (draft, with comments explaining each section)
+
+# Patch your CLAUDE.md with missing context
+ai-habits generate patch --id pat-002
+# → CLAUDE.md.patch (append to your existing file — never replaces it)
+
+# Turn a workflow into a script
+ai-habits generate script --id pat-003
+# → scripts/lint-test-commit.sh
 ```
 
-> **Note:** `ai-habits` uses [sentence-transformers](https://www.sbert.net/) for local embedding, which pulls in PyTorch (~500MB on first run). Everything runs locally — no data leaves your machine except optional Anthropic API calls for classification.
+Everything is a **draft**. ai-habits never auto-applies anything.
+
+---
+
+## And it shows you features you didn't know existed
+
+```
+$ ai-habits discover
+
+✗ Skills
+  You have 5 repeated patterns that would work as skills.
+  → ai-habits generate skill --id pat-001
+
+✗ MCP Servers
+  You frequently copy-paste GitHub issue content into Claude.
+  → The GitHub MCP server would eliminate this entirely.
+
+✓ CLAUDE.md — exists, but run `ai-habits audit` to check if it's still accurate
+```
+
+---
+
+## Install
+
+```bash
+pip install 'ai-habits[ml]'
+```
+
+> Pulls in PyTorch via sentence-transformers (~500MB on first run) for local embedding. Everything runs on your machine — no conversation data leaves unless you opt into LLM classification.
+
+**Requirements:** Python 3.11+, Claude Code with existing conversation history (`~/.claude/projects/`)
+
+---
 
 ## Quick start
 
 ```bash
-# Scan your last 30 days of Claude Code conversations
+# See your patterns
 ai-habits scan
 
-# Scan a specific project
+# Scope to one project
 ai-habits scan --project /path/to/my-project
 
-# See what Claude Code features you're not using
+# See what Claude Code features you're missing
 ai-habits discover
 
 # Check if your CLAUDE.md matches how you actually work
 ai-habits audit
 ```
 
+---
+
 ## Commands
 
 ### `ai-habits scan`
-
-Parses Claude Code logs, clusters similar messages, classifies patterns.
-
 ```bash
 ai-habits scan [--last 30d] [--min-occurrences 3] [--project PATH] [--no-llm]
 ```
+Parses `~/.claude/projects/` logs, clusters similar messages, classifies patterns. Results saved to `~/.ai-habits/last_scan.json`.
 
-Options:
-- `--last` — lookback window (default: `30d`)
-- `--min-occurrences` — minimum messages to form a pattern (default: `3`)
-- `--project` — filter to a specific project path
-- `--no-llm` — skip Anthropic API classification (faster, shows more noise)
-
-Results are saved to `~/.ai-habits/last_scan.json` for use by `generate` and `explain`.
-
----
+| Flag | Default | Description |
+|---|---|---|
+| `--last` | `30d` | Lookback window |
+| `--min-occurrences` | `3` | Min messages to form a pattern |
+| `--project` | all projects | Filter to one project |
+| `--no-llm` | off | Skip classification, show all clusters |
 
 ### `ai-habits discover`
-
-Shows Claude Code features you're not using, cross-referenced with your scan results.
-
 ```bash
 ai-habits discover [PROJECT_DIR]
 ```
-
-Example output:
-```
-✓ CLAUDE.md
-✗ Skills
-  You have 5 repeated patterns that would work as skills (pat-002, pat-004, pat-005).
-  → Run `ai-habits generate skill --id pat-002` to create a draft.
-✗ MCP Servers
-  Based on your conversations, you frequently reference GitHub issues.
-  → Add the GitHub MCP server to save context-switching.
-```
-
----
+Checks for missing Claude Code features (skills, MCP servers, CLAUDE.md) and cross-references your last scan to make it concrete: *"You have 5 patterns that would work as skills."*
 
 ### `ai-habits audit`
-
-Compares your existing CLAUDE.md against actual conversation behavior.
-
 ```bash
 ai-habits audit [PROJECT_DIR]
 ```
-
-Requires CLAUDE.md to exist — run `claude /init` first if needed.
-
----
+Compares your CLAUDE.md against actual conversation behavior. Flags stale entries (contradicted by recent conversations) and missing entries (context you keep re-explaining). Requires CLAUDE.md — run `claude /init` first if you don't have one.
 
 ### `ai-habits generate`
-
-Creates draft artifacts from detected patterns.
-
 ```bash
 ai-habits generate skill --id pat-001    # → .claude/skills/<name>/SKILL.md
 ai-habits generate patch [--id pat-002]  # → CLAUDE.md.patch
 ai-habits generate script --id pat-003  # → scripts/<name>.sh
 ```
-
-All generated files are **drafts** — never auto-applied. Every section includes a comment explaining what evidence triggered it.
-
----
+Creates draft artifacts from detected patterns. Every generated file includes inline comments explaining what evidence triggered the suggestion.
 
 ### `ai-habits explain`
-
-Dry-run: shows how a generated artifact would have helped in past conversations.
-
 ```bash
 ai-habits explain --id pat-001
 ```
+Dry-run: shows the conversations where the pattern appeared and what would have been different with a skill or config in place.
+
+---
+
+## LLM classification (optional, recommended)
+
+Without an API key, all clusters are shown — including noise like short confirmations. With a key, Claude Haiku classifies each cluster and filters one-off tasks:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+ai-habits scan
+```
+
+A full 30-day scan costs a few cents. Uses `claude-haiku` only.
 
 ---
 
 ## How it works
 
 1. **Scan** — reads `~/.claude/projects/*/` JSONL files (Claude Code's local log format)
-2. **Embed** — encodes each user message using `all-MiniLM-L6-v2` (runs locally, offline)
+2. **Embed** — encodes each user message with `all-MiniLM-L6-v2`, runs locally and offline
 3. **Cluster** — groups similar messages with DBSCAN
-4. **Classify** — optional LLM pass (Anthropic API) labels each cluster: `repeatable-workflow`, `boilerplate-request`, `context-re-explanation`, or `one-off-task`
-5. **Report** — ranks patterns by frequency, surfaces anti-patterns, suggests actions
+4. **Classify** — optional LLM pass labels each cluster: `repeatable-workflow`, `boilerplate-request`, `context-re-explanation`, or `one-off-task`
+5. **Report** — ranks by frequency, surfaces anti-patterns, suggests the right fix for each
 
-Without an API key, classification is skipped and all clusters are shown. With a key, one-off tasks are filtered and clusters get meaningful labels.
-
-## LLM classification (optional)
-
-```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-ai-habits scan   # now classifies and filters clusters
-```
-
-Uses `claude-haiku` — cheap, fast. A 30-day scan costs a few cents.
+---
 
 ## Privacy
 
 - All conversation data stays on your machine
-- Embeddings are computed locally using sentence-transformers
-- The only outbound call is the optional Anthropic classification pass
-- Scan results are stored in `~/.ai-habits/last_scan.json`
+- Embeddings computed locally — no API call for this step
+- The only outbound request is the optional Anthropic classification pass
+- Scan results stored in `~/.ai-habits/last_scan.json`
+
+No telemetry. No tracking. This tool reads your most sensitive work data — that trust is taken seriously.
+
+---
 
 ## Supported platforms
 
-Currently supports **Claude Code** (`~/.claude/projects/`).
+| Platform | Status |
+|---|---|
+| Claude Code | ✅ Supported |
+| Cursor | Planned |
+| Aider | Planned |
+| GitHub Copilot | Planned |
 
-Planned: Cursor, Aider, GitHub Copilot.
-
-## Configuration
-
-Thresholds can be tuned via `~/.ai-habits/config.yaml` (coming in v0.2):
-
-```yaml
-min_cluster_size: 3       # min messages to form a pattern
-similarity_threshold: 0.75 # cosine similarity for clustering
-default_lookback_days: 30
-```
-
-## Requirements
-
-- Python 3.11+
-- Claude Code installed and used (logs exist at `~/.claude/projects/`)
+---
 
 ## Contributing
 

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -8,8 +8,9 @@ version = "0.1.0"
 description = "ESLint for your AI assistant usage — scan conversation history, find patterns, generate fixes"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { file = "LICENSE" }
-authors = [{ name = "ai-habits contributors" }]
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "santanu", email = "p.santanusaha@gmail.com" }]
 keywords = [
     "claude", "claude-code", "ai", "llm", "productivity",
     "developer-tools", "conversation-analysis", "prompt-engineering",
@@ -17,7 +18,6 @@ keywords = [
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",

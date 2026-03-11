@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.cache/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# Test / coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ai-habits generated drafts (don't commit these)
+*.draft
+*.patch
+CLAUDE.md.draft
+CLAUDE.md.patch
+
+# Distribution
+dist/
+*.tar.gz
+*.whl
+
+# Sentence-transformers model cache (large)
+.cache/

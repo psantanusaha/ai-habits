@@ -1,0 +1,78 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-habits"
+version = "0.1.0"
+description = "ESLint for your AI assistant usage — scan conversation history, find patterns, generate fixes"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "ai-habits contributors" }]
+keywords = [
+    "claude", "claude-code", "ai", "llm", "productivity",
+    "developer-tools", "conversation-analysis", "prompt-engineering",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
+
+# Core dependencies — kept minimal
+# sentence-transformers is in [ml] extras because it pulls in PyTorch (~500MB)
+dependencies = [
+    "click>=8.1",
+    "rich>=13.0",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+# Required for scan command (clustering)
+ml = [
+    "sentence-transformers>=3.0",
+    "scikit-learn>=1.4",
+]
+# Required for LLM classification pass
+llm = [
+    "anthropic>=0.25",
+]
+# Install everything
+all = [
+    "sentence-transformers>=3.0",
+    "scikit-learn>=1.4",
+    "anthropic>=0.25",
+]
+# Minimal dev deps — no PyTorch, CI-safe
+dev = [
+    "pytest>=8.0",
+    "pytest-cov",
+]
+# Full local dev with all features
+dev-full = [
+    "pytest>=8.0",
+    "pytest-cov",
+    "sentence-transformers>=3.0",
+    "scikit-learn>=1.4",
+    "anthropic>=0.25",
+]
+
+[project.urls]
+Homepage = "https://github.com/yourusername/ai-habits"
+Repository = "https://github.com/yourusername/ai-habits"
+Issues = "https://github.com/yourusername/ai-habits/issues"
+
+[project.scripts]
+ai-habits = "ai_habits.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

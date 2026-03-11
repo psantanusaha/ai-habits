@@ -77,7 +77,7 @@ Scanned 47 conversations, 531 user messages
   💡 Your auth architecture should be in CLAUDE.md, not your chat history.
 ```
 
-> Pattern types (`boilerplate-request`, `context-re-explanation`, etc.) appear when `ANTHROPIC_API_KEY` is set. Without it, patterns still surface with token estimates — types show as `unclassified`.
+> Pattern types (`boilerplate-request`, `context-re-explanation`, etc.) are detected locally using the same embedding model used for clustering — no API key required. Setting `ANTHROPIC_API_KEY` runs an additional LLM pass for higher accuracy.
 
 ```
 $ ai-habits discover
@@ -206,9 +206,11 @@ Shows the conversations where a pattern appeared and what would have been differ
 
 ---
 
-## LLM classification (optional, recommended)
+## LLM classification (optional)
 
-Without an API key, all clusters are shown with token waste estimates — types show as `unclassified`. With one, Claude Haiku classifies each cluster and assigns meaningful types (`boilerplate-request`, `repeatable-workflow`, `context-re-explanation`) so you know what fix applies:
+Pattern classification works out of the box using the same local embedding model (`all-MiniLM-L6-v2`) already used for clustering. No API key, no internet, no extra downloads.
+
+Setting `ANTHROPIC_API_KEY` runs an additional Claude Haiku pass after the local classifier for higher accuracy and better noise filtering:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...

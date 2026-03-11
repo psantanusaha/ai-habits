@@ -153,10 +153,39 @@ def print_discover_report(gaps: list[FeatureGap], project_path: Path) -> None:
             sev_color = {"high": "red", "medium": "yellow", "low": "dim"}.get(gap.severity, "white")
             console.print(f"[{sev_color}]✗[/{sev_color}] [bold]{gap.feature}[/bold]")
             console.print(f"  {gap.why_it_matters}")
-            console.print(f"  [green]→ {gap.how_to_enable}[/green]")
+
+            # For MCP gaps with catalog matches, show each server as a table
+            if gap.mcp_matches:
+                _print_mcp_matches(gap.mcp_matches)
+            else:
+                console.print(f"  [green]→ {gap.how_to_enable}[/green]")
             console.print()
     else:
         console.print("\n[green]All tracked Claude Code features are present![/green]\n")
+
+
+def _print_mcp_matches(matches: list) -> None:
+    """Print a table of matched MCP servers with install commands."""
+    table = Table(box=box.SIMPLE, show_header=True, header_style="bold dim", padding=(0, 1))
+    table.add_column("Server", style="bold yellow", no_wrap=True)
+    table.add_column("Replaces", style="dim")
+    table.add_column("Install", style="green")
+    table.add_column("Hits", style="red", justify="right")
+
+    for m in matches:
+        env_note = f" [dim](needs {', '.join(m.requires_env[:2])})[/dim]" if m.requires_env else ""
+        table.add_row(
+            m.name,
+            m.replaces[:55] + ("…" if len(m.replaces) > 55 else ""),
+            m.install + env_note,
+            str(m.hit_count),
+        )
+
+    console.print(table)
+    console.print(
+        "  [green]→ Add to ~/.claude/settings.json under 'mcpServers'[/green]\n"
+        "  [dim]Full catalog: https://github.com/modelcontextprotocol/servers[/dim]"
+    )
 
 
 def print_audit_report(findings: list, project_path: Path) -> None:

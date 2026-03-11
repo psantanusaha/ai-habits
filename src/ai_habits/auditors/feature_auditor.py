@@ -6,8 +6,25 @@ and what you could do with it based on your usage patterns."
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+import json
+from dataclasses import dataclass, field
+from functools import lru_cache
 from pathlib import Path
+
+
+@dataclass
+class McpMatch:
+    """A specific MCP server matched from the catalog."""
+
+    id: str
+    name: str
+    description: str
+    replaces: str
+    install: str
+    requires_env: list[str]
+    docs_url: str
+    hit_count: int = 0       # number of conversation sample texts that matched
+    matched_keywords: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -20,6 +37,7 @@ class FeatureGap:
     why_it_matters: str
     how_to_enable: str
     severity: str  # "high" | "medium" | "low"
+    mcp_matches: list[McpMatch] = field(default_factory=list)  # populated for MCP gap
 
 
 def audit(project_path: Path) -> list[FeatureGap]:
@@ -62,7 +80,6 @@ def _check_claude_md(project_path: Path) -> FeatureGap:
 
 
 def _check_skills(project_path: Path) -> FeatureGap:
-    # Skills can be in ~/.claude/skills/ (global) or .claude/skills/ (local)
     local_skills = project_path / ".claude" / "skills"
     global_skills = Path.home() / ".claude" / "skills"
     present = (
@@ -70,7 +87,6 @@ def _check_skills(project_path: Path) -> FeatureGap:
         or (global_skills.exists() and any(global_skills.rglob("SKILL.md")))
     )
 
-    # Cross-reference last scan for concrete evidence
     candidates = _skill_candidates_from_last_scan()
     if candidates:
         n = len(candidates)
@@ -105,12 +121,10 @@ def _check_skills(project_path: Path) -> FeatureGap:
 
 
 def _skill_candidates_from_last_scan() -> list[dict]:
-    """Load last_scan.json and return patterns that are skill candidates."""
     scan_path = Path.home() / ".ai-habits" / "last_scan.json"
     if not scan_path.exists():
         return []
     try:
-        import json
         data = json.loads(scan_path.read_text())
         skill_categories = {"repeatable-workflow", "boilerplate-request", None}
         return [
@@ -122,38 +136,46 @@ def _skill_candidates_from_last_scan() -> list[dict]:
 
 
 def _check_mcp(project_path: Path) -> FeatureGap:
-    # MCP config in ~/.claude/settings.json under mcpServers key
+    """Check MCP server usage and match conversation history against the catalog."""
     settings_path = Path.home() / ".claude" / "settings.json"
     has_mcp = False
     if settings_path.exists():
         try:
-            import json
             settings = json.loads(settings_path.read_text())
             has_mcp = bool(settings.get("mcpServers"))
         except Exception:
             pass
 
-    suggestions = _mcp_suggestions_from_last_scan()
+    matches = _mcp_matches_from_last_scan()
 
-    if suggestions:
+    if matches:
+        top = matches[0]
+        total_hits = sum(m.hit_count for m in matches)
+        names = ", ".join(m.name for m in matches[:3])
+        more = f" +{len(matches) - 3} more" if len(matches) > 3 else ""
+
         why = (
-            "Based on your conversation history, you're manually providing context "
-            "that MCP servers could fetch automatically — saving tokens every session.\n"
-            + "\n".join(f"  • {s}" for s in suggestions)
+            f"Based on your conversations, {len(matches)} MCP server{'s' if len(matches) != 1 else ''} "
+            f"could save you ~{total_hits} copy-paste{'s' if total_hits != 1 else ''} per scan window.\n"
+            f"Matched: {names}{more}"
         )
         how = (
-            "Add the relevant servers to ~/.claude/settings.json under 'mcpServers'.\n"
-            "Browse available servers: https://github.com/modelcontextprotocol/servers"
+            f"Highest impact: {top.name}\n"
+            f"  What it does: {top.replaces}\n"
+            f"  Install:      {top.install}\n"
+            f"  Config:       add to ~/.claude/settings.json under 'mcpServers'\n"
+            f"  Docs:         {top.docs_url}"
         )
-        severity = "medium"
+        severity = "high" if not has_mcp else "medium"
     else:
         why = (
             "MCP servers let Claude read GitHub issues, query databases, and access "
-            "documentation without you copy-pasting context into the chat."
+            "documentation without you copy-pasting context into the chat.\n"
+            "Run `ai-habits scan` first for personalised server suggestions."
         )
         how = (
-            "Run `ai-habits scan` first to get personalised MCP suggestions, or browse "
-            "available servers: https://github.com/modelcontextprotocol/servers"
+            "Browse the full catalog: https://github.com/modelcontextprotocol/servers\n"
+            "Then add servers to ~/.claude/settings.json under 'mcpServers'."
         )
         severity = "low"
 
@@ -164,69 +186,87 @@ def _check_mcp(project_path: Path) -> FeatureGap:
         why_it_matters=why,
         how_to_enable=how,
         severity=severity,
+        mcp_matches=matches,
     )
 
 
-# MCP server detection rules: (keyword_patterns, server_name, what_it_does)
-_MCP_RULES: list[tuple[list[str], str, str]] = [
-    (
-        ["github", "issue", "pull request", "pr #", "repo", "commit"],
-        "GitHub MCP",
-        "You reference GitHub content repeatedly — GitHub MCP lets Claude read issues/PRs directly",
-    ),
-    (
-        ["select ", "from ", "query", "database", "sql", "postgres", "mysql"],
-        "Database MCP",
-        "You paste query results into conversations — a DB MCP lets Claude query directly",
-    ),
-    (
-        ["docs", "documentation", "api reference", "read the docs", "rtfd"],
-        "Fetch/Browser MCP",
-        "You reference external documentation — Fetch MCP lets Claude read URLs without copy-paste",
-    ),
-    (
-        ["jira", "ticket", "sprint", "confluence"],
-        "Atlassian MCP",
-        "You reference Jira/Confluence content — Atlassian MCP lets Claude access it directly",
-    ),
-    (
-        ["slack", "message", "channel", "dm"],
-        "Slack MCP",
-        "You reference Slack messages — Slack MCP lets Claude read them without copy-paste",
-    ),
-]
+# ---------------------------------------------------------------------------
+# MCP catalog matching
+# ---------------------------------------------------------------------------
+
+@lru_cache(maxsize=1)
+def _load_catalog() -> list[dict]:
+    """Load mcp_catalog.json bundled with the package."""
+    catalog_path = Path(__file__).parent.parent / "data" / "mcp_catalog.json"
+    try:
+        return json.loads(catalog_path.read_text())
+    except Exception:
+        return []
 
 
-def _mcp_suggestions_from_last_scan() -> list[str]:
-    """Analyse last scan patterns to suggest specific MCP servers."""
+def _mcp_matches_from_last_scan() -> list[McpMatch]:
+    """Match last scan patterns against the MCP catalog.
+
+    Returns McpMatch objects sorted by hit_count descending.
+    """
     scan_path = Path.home() / ".ai-habits" / "last_scan.json"
     if not scan_path.exists():
         return []
 
     try:
-        import json
         data = json.loads(scan_path.read_text())
         patterns = data.get("patterns", [])
 
-        # Collect all sample texts from patterns
-        all_text = " ".join(
+        # Collect all sample texts from every pattern
+        all_texts = [
             text.lower()
             for p in patterns
             for text in p.get("sample_texts", [])
-        )
+        ]
+        if not all_texts:
+            return []
 
-        suggestions: list[str] = []
-        for keywords, server_name, description in _MCP_RULES:
-            if any(kw in all_text for kw in keywords):
-                suggestions.append(description)
+        catalog = _load_catalog()
+        matches: list[McpMatch] = []
 
-        return suggestions
+        for entry in catalog:
+            hit_count = 0
+            matched_kws: list[str] = []
+            for kw in entry["keywords"]:
+                kw_lower = kw.lower()
+                hits = sum(1 for t in all_texts if kw_lower in t)
+                if hits:
+                    hit_count += hits
+                    matched_kws.append(kw)
+
+            if hit_count > 0:
+                matches.append(McpMatch(
+                    id=entry["id"],
+                    name=entry["name"],
+                    description=entry["description"],
+                    replaces=entry["replaces"],
+                    install=entry["install"],
+                    requires_env=entry.get("requires_env", []),
+                    docs_url=entry["docs_url"],
+                    hit_count=hit_count,
+                    matched_keywords=matched_kws,
+                ))
+
+        # Deduplicate by install command (e.g. github + github-actions share same server)
+        seen_installs: set[str] = set()
+        deduped: list[McpMatch] = []
+        for m in sorted(matches, key=lambda x: x.hit_count, reverse=True):
+            if m.install not in seen_installs:
+                seen_installs.add(m.install)
+                deduped.append(m)
+
+        return deduped
+
     except Exception:
         return []
 
 
 def _check_local_claude_md(project_path: Path) -> FeatureGap:
-    """Check if user knows about .claude/CLAUDE.md for sub-directory context."""
     local_dir = project_path / ".claude"
     present = local_dir.is_dir() and any(local_dir.glob("*.md"))
     return FeatureGap(

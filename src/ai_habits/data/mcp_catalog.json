@@ -1,0 +1,766 @@
+[
+  {
+    "id": "github",
+    "name": "GitHub MCP",
+    "category": "development",
+    "description": "Read repos, issues, PRs, comments, and code directly",
+    "replaces": "Copy-pasting GitHub issue content, PR descriptions, and diffs into chat",
+    "keywords": [
+      "github",
+      "issue #",
+      "pull request",
+      "pr #",
+      "open pr",
+      "merge pr",
+      "repo",
+      "gh ",
+      "git blame",
+      "github.com"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-github",
+    "config_key": "github",
+    "requires_env": [
+      "GITHUB_PERSONAL_ACCESS_TOKEN"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/github"
+  },
+  {
+    "id": "gitlab",
+    "name": "GitLab MCP",
+    "category": "development",
+    "description": "Read GitLab repos, issues, merge requests, and pipelines",
+    "replaces": "Copy-pasting GitLab MR descriptions and pipeline logs into chat",
+    "keywords": [
+      "gitlab",
+      "merge request",
+      "mr !",
+      "gitlab.com",
+      "ci/cd pipeline",
+      "gitlab ci"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-gitlab",
+    "config_key": "gitlab",
+    "requires_env": [
+      "GITLAB_PERSONAL_ACCESS_TOKEN"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gitlab"
+  },
+  {
+    "id": "fetch",
+    "name": "Fetch MCP",
+    "category": "documentation",
+    "description": "Fetch any URL and convert to markdown \u2014 docs, APIs, web pages",
+    "replaces": "Copy-pasting documentation snippets, API references, and web content into chat",
+    "keywords": [
+      "docs",
+      "documentation",
+      "api reference",
+      "read the docs",
+      "readthedocs",
+      "rtfd",
+      "see the docs",
+      "from the docs",
+      "according to the docs",
+      "check the docs"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-fetch",
+    "config_key": "fetch",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/fetch"
+  },
+  {
+    "id": "postgres",
+    "name": "PostgreSQL MCP",
+    "category": "database",
+    "description": "Query your PostgreSQL database directly \u2014 schema inspection and read-only queries",
+    "replaces": "Copy-pasting query results, table schemas, and row counts into chat",
+    "keywords": [
+      "postgres",
+      "postgresql",
+      "psql",
+      "pg_",
+      "pgadmin",
+      "database query",
+      "sql query",
+      "db query",
+      "select * from",
+      "from the table",
+      "query result",
+      "sql query result"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-postgres",
+    "config_key": "postgres",
+    "requires_env": [
+      "POSTGRES_CONNECTION_STRING"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/postgres"
+  },
+  {
+    "id": "sqlite",
+    "name": "SQLite MCP",
+    "category": "database",
+    "description": "Query a local SQLite database directly",
+    "replaces": "Copy-pasting SQLite query results and schema into chat",
+    "keywords": [
+      "sqlite",
+      ".db file",
+      "sqlite3",
+      "local database",
+      "sql lite"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-sqlite",
+    "config_key": "sqlite",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/sqlite"
+  },
+  {
+    "id": "mysql",
+    "name": "MySQL MCP",
+    "category": "database",
+    "description": "Query MySQL and MariaDB databases directly",
+    "replaces": "Copy-pasting MySQL query results and table schemas into chat",
+    "keywords": [
+      "mysql",
+      "mariadb",
+      "innodb",
+      "mysqldump",
+      "mysql workbench"
+    ],
+    "install": "npx -y mcp-server-mysql",
+    "config_key": "mysql",
+    "requires_env": [
+      "MYSQL_CONNECTION_STRING"
+    ],
+    "docs_url": "https://github.com/designcomputer/mysql_mcp_server"
+  },
+  {
+    "id": "mongodb",
+    "name": "MongoDB MCP",
+    "category": "database",
+    "description": "Query MongoDB collections directly \u2014 find, aggregate, and inspect schemas",
+    "replaces": "Copy-pasting MongoDB documents and collection stats into chat",
+    "keywords": [
+      "mongodb",
+      "mongo ",
+      "mongoose",
+      "collection",
+      "aggregate pipeline",
+      "bson",
+      "atlas"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-mongodb",
+    "config_key": "mongodb",
+    "requires_env": [
+      "MONGODB_CONNECTION_STRING"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "filesystem",
+    "name": "Filesystem MCP",
+    "category": "development",
+    "description": "Read files outside the current working directory",
+    "replaces": "Manually reading and pasting file contents from other directories",
+    "keywords": [
+      "read the file at",
+      "contents of ~/",
+      "check the file in",
+      "look at the config file",
+      "read config from",
+      "the file is at /"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-filesystem",
+    "config_key": "filesystem",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem"
+  },
+  {
+    "id": "slack",
+    "name": "Slack MCP",
+    "category": "communication",
+    "description": "Read Slack messages, channels, and threads directly",
+    "replaces": "Copy-pasting Slack thread content and channel messages into chat",
+    "keywords": [
+      "slack",
+      "slack channel",
+      "slack message",
+      "dm ",
+      "in the slack",
+      "slack thread",
+      "posted in slack"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-slack",
+    "config_key": "slack",
+    "requires_env": [
+      "SLACK_BOT_TOKEN"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/slack"
+  },
+  {
+    "id": "jira",
+    "name": "Atlassian Jira MCP",
+    "category": "productivity",
+    "description": "Read and update Jira tickets, sprints, and boards",
+    "replaces": "Copy-pasting Jira ticket descriptions and comments into chat",
+    "keywords": [
+      "jira",
+      "jira ticket",
+      "sprint",
+      "story points",
+      "backlog",
+      "jira board",
+      "epic",
+      "jira issue",
+      "ticket id"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-atlassian",
+    "config_key": "jira",
+    "requires_env": [
+      "ATLASSIAN_TOKEN",
+      "ATLASSIAN_URL"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/atlassian"
+  },
+  {
+    "id": "confluence",
+    "name": "Confluence MCP",
+    "category": "productivity",
+    "description": "Read and search Confluence pages and spaces",
+    "replaces": "Copy-pasting Confluence page content and architecture docs into chat",
+    "keywords": [
+      "confluence",
+      "confluence page",
+      "wiki page",
+      "internal docs",
+      "architecture doc"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-atlassian",
+    "config_key": "confluence",
+    "requires_env": [
+      "ATLASSIAN_TOKEN",
+      "ATLASSIAN_URL"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/atlassian"
+  },
+  {
+    "id": "linear",
+    "name": "Linear MCP",
+    "category": "productivity",
+    "description": "Read and create Linear issues, projects, and cycles",
+    "replaces": "Copy-pasting Linear issue descriptions and project status into chat",
+    "keywords": [
+      "linear",
+      "linear issue",
+      "linear ticket",
+      "linear project",
+      "linear.app"
+    ],
+    "install": "npx -y @linear/mcp-server",
+    "config_key": "linear",
+    "requires_env": [
+      "LINEAR_API_KEY"
+    ],
+    "docs_url": "https://github.com/linear/linear-mcp"
+  },
+  {
+    "id": "notion",
+    "name": "Notion MCP",
+    "category": "productivity",
+    "description": "Read and write Notion pages, databases, and blocks",
+    "replaces": "Copy-pasting Notion page content and database entries into chat",
+    "keywords": [
+      "notion",
+      "notion page",
+      "notion database",
+      "notion doc",
+      "notion.so"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-notion",
+    "config_key": "notion",
+    "requires_env": [
+      "NOTION_API_KEY"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "google-drive",
+    "name": "Google Drive MCP",
+    "category": "productivity",
+    "description": "Read Google Docs, Sheets, and Drive files directly",
+    "replaces": "Copy-pasting Google Doc content and spreadsheet data into chat",
+    "keywords": [
+      "google doc",
+      "google sheet",
+      "google drive",
+      "gdoc",
+      "gsheet",
+      "docs.google.com",
+      "sheets.google.com"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-gdrive",
+    "config_key": "gdrive",
+    "requires_env": [
+      "GOOGLE_CLIENT_ID",
+      "GOOGLE_CLIENT_SECRET"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/gdrive"
+  },
+  {
+    "id": "aws",
+    "name": "AWS MCP",
+    "category": "cloud",
+    "description": "Query AWS services \u2014 CloudWatch, S3, Lambda, ECS \u2014 directly",
+    "replaces": "Copy-pasting CloudWatch logs, S3 listings, and Lambda configs into chat",
+    "keywords": [
+      "aws",
+      "cloudwatch",
+      "s3 bucket",
+      "lambda function",
+      "ecs",
+      "ec2",
+      "iam role",
+      "aws console",
+      "boto3",
+      "cloud formation",
+      "cloudformation"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-aws",
+    "config_key": "aws",
+    "requires_env": [
+      "AWS_ACCESS_KEY_ID",
+      "AWS_SECRET_ACCESS_KEY"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "gcp",
+    "name": "Google Cloud MCP",
+    "category": "cloud",
+    "description": "Query GCP services \u2014 BigQuery, Cloud Run, GCS \u2014 directly",
+    "replaces": "Copy-pasting GCP logs, BigQuery results, and GCS contents into chat",
+    "keywords": [
+      "gcp",
+      "google cloud",
+      "bigquery",
+      "cloud run",
+      "gcs bucket",
+      "pub/sub",
+      "cloud functions",
+      "gke",
+      "google kubernetes engine"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-gcp",
+    "config_key": "gcp",
+    "requires_env": [
+      "GOOGLE_APPLICATION_CREDENTIALS"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "docker",
+    "name": "Docker MCP",
+    "category": "cloud",
+    "description": "Inspect running containers, images, and compose services",
+    "replaces": "Copy-pasting docker ps output, container logs, and image listings into chat",
+    "keywords": [
+      "docker",
+      "docker-compose",
+      "container",
+      "docker ps",
+      "docker logs",
+      "dockerfile",
+      "docker image",
+      "container id"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-docker",
+    "config_key": "docker",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "kubernetes",
+    "name": "Kubernetes MCP",
+    "category": "cloud",
+    "description": "Inspect k8s resources \u2014 pods, deployments, services, logs",
+    "replaces": "Copy-pasting kubectl output, pod logs, and resource configs into chat",
+    "keywords": [
+      "kubernetes",
+      "kubectl",
+      "k8s",
+      "helm ",
+      "cluster ",
+      "ingress ",
+      "pod name",
+      "k8s pod",
+      "pod logs",
+      "deployment yaml",
+      "namespace yaml"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-kubernetes",
+    "config_key": "kubernetes",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "sentry",
+    "name": "Sentry MCP",
+    "category": "monitoring",
+    "description": "Read Sentry errors, stack traces, and issue details directly",
+    "replaces": "Copy-pasting Sentry error stack traces and issue descriptions into chat",
+    "keywords": [
+      "sentry",
+      "sentry error",
+      "sentry issue",
+      "sentry.io",
+      "error tracking",
+      "stack trace from sentry"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-sentry",
+    "config_key": "sentry",
+    "requires_env": [
+      "SENTRY_AUTH_TOKEN",
+      "SENTRY_ORG"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "datadog",
+    "name": "Datadog MCP",
+    "category": "monitoring",
+    "description": "Query Datadog metrics, logs, and monitors directly",
+    "replaces": "Copy-pasting Datadog dashboard data and log search results into chat",
+    "keywords": [
+      "datadog",
+      "datadog metric",
+      "datadog log",
+      "datadog monitor",
+      "apm trace",
+      "dd agent",
+      "dd metric",
+      "dd monitor"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-datadog",
+    "config_key": "datadog",
+    "requires_env": [
+      "DD_API_KEY",
+      "DD_APP_KEY"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "pagerduty",
+    "name": "PagerDuty MCP",
+    "category": "monitoring",
+    "description": "Read PagerDuty incidents, schedules, and escalation policies",
+    "replaces": "Copy-pasting PagerDuty incident details and on-call schedules into chat",
+    "keywords": [
+      "pagerduty",
+      "on-call",
+      "incident ",
+      "escalation policy",
+      "pagerduty alert"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-pagerduty",
+    "config_key": "pagerduty",
+    "requires_env": [
+      "PAGERDUTY_API_KEY"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "playwright",
+    "name": "Playwright MCP",
+    "category": "testing",
+    "description": "Control a real browser \u2014 navigate, click, screenshot, scrape",
+    "replaces": "Manually running browser tests and pasting output, or describing UI bugs in text",
+    "keywords": [
+      "playwright",
+      "browser automation",
+      "e2e test",
+      "end-to-end test",
+      "selenium",
+      "puppeteer",
+      "web scraping",
+      "screenshot the page"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-playwright",
+    "config_key": "playwright",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "redis",
+    "name": "Redis MCP",
+    "category": "database",
+    "description": "Inspect Redis keys, values, and pub/sub channels directly",
+    "replaces": "Copy-pasting Redis CLI output and key listings into chat",
+    "keywords": [
+      "redis",
+      "redis key",
+      "cache key",
+      "redis-cli",
+      "pub/sub",
+      "redis queue",
+      "bull queue",
+      "celery"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-redis",
+    "config_key": "redis",
+    "requires_env": [
+      "REDIS_URL"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "elasticsearch",
+    "name": "Elasticsearch MCP",
+    "category": "database",
+    "description": "Query Elasticsearch indices and inspect mappings directly",
+    "replaces": "Copy-pasting ES query results and mapping configs into chat",
+    "keywords": [
+      "elasticsearch",
+      "elastic search",
+      "kibana",
+      "es index",
+      "opensearch",
+      "lucene query",
+      "elk stack"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-elasticsearch",
+    "config_key": "elasticsearch",
+    "requires_env": [
+      "ELASTICSEARCH_URL"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "terraform",
+    "name": "Terraform MCP",
+    "category": "cloud",
+    "description": "Read Terraform state, plan output, and resource configs",
+    "replaces": "Copy-pasting terraform plan output and state file contents into chat",
+    "keywords": [
+      "terraform",
+      "terraform plan",
+      "terraform state",
+      "tfstate",
+      "hcl",
+      "terraform apply",
+      "terraform module"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-terraform",
+    "config_key": "terraform",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "github-actions",
+    "name": "GitHub Actions MCP",
+    "category": "development",
+    "description": "Read workflow runs, job logs, and CI status directly",
+    "replaces": "Copy-pasting GitHub Actions log output and failure messages into chat",
+    "keywords": [
+      "github actions",
+      "workflow run",
+      "ci failed",
+      "build failed",
+      "action log",
+      "workflow yaml",
+      ".github/workflows"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-github",
+    "config_key": "github",
+    "requires_env": [
+      "GITHUB_PERSONAL_ACCESS_TOKEN"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers/tree/main/src/github"
+  },
+  {
+    "id": "npm",
+    "name": "npm/package MCP",
+    "category": "development",
+    "description": "Fetch npm package info, changelogs, and dependency trees",
+    "replaces": "Copying npm package READMEs and version changelogs into chat",
+    "keywords": [
+      "npm package",
+      "npm install",
+      "package.json",
+      "node_modules",
+      "yarn add",
+      "pnpm add",
+      "changelog for",
+      "what version of"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-npm",
+    "config_key": "npm",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "pypi",
+    "name": "PyPI MCP",
+    "category": "development",
+    "description": "Fetch PyPI package info, release notes, and dependency data",
+    "replaces": "Copying PyPI package documentation and version info into chat",
+    "keywords": [
+      "pip install",
+      "pypi",
+      "requirements.txt",
+      "python package",
+      "what version of",
+      "latest version of"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-pypi",
+    "config_key": "pypi",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "stripe",
+    "name": "Stripe MCP",
+    "category": "productivity",
+    "description": "Query Stripe payments, customers, and subscriptions directly",
+    "replaces": "Copy-pasting Stripe dashboard data and payment logs into chat",
+    "keywords": [
+      "stripe",
+      "stripe payment",
+      "stripe subscription",
+      "stripe customer",
+      "stripe webhook",
+      "payment intent",
+      "stripe dashboard"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-stripe",
+    "config_key": "stripe",
+    "requires_env": [
+      "STRIPE_SECRET_KEY"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "supabase",
+    "name": "Supabase MCP",
+    "category": "database",
+    "description": "Query Supabase tables, auth users, and storage directly",
+    "replaces": "Copy-pasting Supabase dashboard data and query results into chat",
+    "keywords": [
+      "supabase",
+      "supabase table",
+      "supabase auth",
+      "supabase storage",
+      "supabase edge function"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-supabase",
+    "config_key": "supabase",
+    "requires_env": [
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_KEY"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "discord",
+    "name": "Discord MCP",
+    "category": "communication",
+    "description": "Read Discord server messages, channels, and threads",
+    "replaces": "Copy-pasting Discord conversation threads and announcements into chat",
+    "keywords": [
+      "discord",
+      "discord server",
+      "discord channel",
+      "discord message",
+      "discord bot",
+      "discord thread"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-discord",
+    "config_key": "discord",
+    "requires_env": [
+      "DISCORD_BOT_TOKEN"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "airtable",
+    "name": "Airtable MCP",
+    "category": "productivity",
+    "description": "Read and write Airtable bases, tables, and records",
+    "replaces": "Copy-pasting Airtable record data and table exports into chat",
+    "keywords": [
+      "airtable",
+      "airtable base",
+      "airtable table",
+      "airtable record",
+      "airtable api"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-airtable",
+    "config_key": "airtable",
+    "requires_env": [
+      "AIRTABLE_API_KEY"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "figma",
+    "name": "Figma MCP",
+    "category": "productivity",
+    "description": "Read Figma file contents, components, and design tokens",
+    "replaces": "Describing UI designs in text or copy-pasting Figma component specs",
+    "keywords": [
+      "figma",
+      "figma design",
+      "figma component",
+      "design token",
+      "figma file",
+      "figma.com",
+      "ui design"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-figma",
+    "config_key": "figma",
+    "requires_env": [
+      "FIGMA_ACCESS_TOKEN"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "vercel",
+    "name": "Vercel MCP",
+    "category": "cloud",
+    "description": "Read Vercel deployments, build logs, and environment variables",
+    "replaces": "Copy-pasting Vercel deployment logs and build failures into chat",
+    "keywords": [
+      "vercel",
+      "vercel deploy",
+      "vercel build",
+      "vercel log",
+      "next.js deploy",
+      "vercel.app"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-vercel",
+    "config_key": "vercel",
+    "requires_env": [
+      "VERCEL_TOKEN"
+    ],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  },
+  {
+    "id": "openapi",
+    "name": "OpenAPI MCP",
+    "category": "development",
+    "description": "Fetch and explore OpenAPI/Swagger specs from any URL",
+    "replaces": "Copy-pasting API endpoint definitions and request/response schemas into chat",
+    "keywords": [
+      "openapi",
+      "swagger",
+      "api spec",
+      "api endpoint",
+      "rest api",
+      "api schema",
+      "openapi.json",
+      "swagger.yaml"
+    ],
+    "install": "npx -y @modelcontextprotocol/server-openapi",
+    "config_key": "openapi",
+    "requires_env": [],
+    "docs_url": "https://github.com/modelcontextprotocol/servers"
+  }
+]

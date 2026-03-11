@@ -90,6 +90,19 @@ def _print_pattern(pat: Pattern, index: int) -> None:
         more = f" +{len(dates)-6} more" if len(dates) > 6 else ""
         console.print(f"     │ Dates: [dim]{', '.join(date_strs)}{more}[/dim]")
 
+    # Token waste estimate
+    input_tok, output_tok = pat.wasted_tokens
+    total_tok = input_tok + output_tok
+    if total_tok > 0:
+        parts = []
+        if input_tok:
+            parts.append(f"~{input_tok:,} input")
+        if output_tok:
+            parts.append(f"~{output_tok:,} output")
+        console.print(
+            f"     │ Est. token waste: [red]{' + '.join(parts)} tokens[/red]"
+        )
+
     # Sample message
     if pat.sample_texts:
         sample = pat.sample_texts[0][:80].replace("\n", " ")
@@ -207,6 +220,7 @@ def load_scan_results() -> list[dict]:
 
 
 def _pattern_to_dict(pat: Pattern) -> dict:
+    input_tok, output_tok = pat.wasted_tokens
     return {
         "id": pat.id,
         "label": pat.label,
@@ -214,4 +228,6 @@ def _pattern_to_dict(pat: Pattern) -> dict:
         "size": pat.size,
         "sample_texts": pat.sample_texts,
         "dates": [d.isoformat() for d in pat.dates[:10]],
+        "wasted_input_tokens": input_tok,
+        "wasted_output_tokens": output_tok,
     }

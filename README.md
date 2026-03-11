@@ -47,42 +47,62 @@ It reads your Claude Code conversation history, finds your specific gaps, and te
 ```
 $ ai-habits scan
 
-📊 Scanned 47 conversations (last 30 days)
+┌─────────────────────────────────────────────┐
+│ ai-habits scan  last 30 days                │
+└─────────────────────────────────────────────┘
+Scanned 47 conversations, 531 user messages
 
-🔁 REPEATED PATTERNS (token bleed detected)
+🔁 REPEATED PATTERNS
 
   1. "Set up FastAPI with auth + Docker" — 7 occurrences
-     │ Type: boilerplate-request
-     │ Est. waste: ~5,600 output tokens (same scaffold, 7 times)
-     └─ 💡 Turn this into a skill → ai-habits generate skill --id pat-001
+     │ Type: 📋 boilerplate-request
+     │ Dates: Jan 3, Jan 9, Jan 14, Jan 21, Feb 1, Feb 8 +1 more
+     │ Est. token waste: ~4,900 input + ~5,600 output tokens
+     └─ 💡 Skill candidate → ai-habits generate skill --id pat-001
 
-  2. Tech stack re-explained — 12 out of 47 conversations
-     │ Type: context-re-explanation
-     │ You keep telling Claude: Python 3.11, FastAPI, Postgres, Redis, GCP
-     │ Est. waste: ~960 input tokens (80 tokens × 12 sessions)
-     └─ 💡 This belongs in CLAUDE.md → ai-habits generate patch --id pat-002
+  2. "This is a Python 3.11 FastAPI project on GCP..." — 12 occurrences
+     │ Type: 🔄 context-re-explanation
+     │ Dates: Dec 28, Jan 2, Jan 6, Jan 11, Jan 15, Jan 19 +6 more
+     │ Est. token waste: ~960 input tokens
+     └─ 💡 Add to CLAUDE.md → ai-habits generate patch --id pat-002
 
-  3. "lint then test then commit" — 9 occurrences
-     │ Type: repeatable-workflow
-     └─ 💡 Make this a script or slash command → ai-habits generate script --id pat-003
+  3. "run lint then tests then commit" — 9 occurrences
+     │ Type: 🔁 repeatable-workflow
+     │ Est. token waste: ~630 input + ~3,600 output tokens
+     └─ 💡 Skill candidate → ai-habits generate skill --id pat-003
 
 ⚠️  ANTI-PATTERNS
-  You frequently describe your auth setup to Claude. (16 occurrences)
+  auth-setup-repeat (16 occurrences)
+  You repeatedly describe your authentication setup to Claude.
   💡 Your auth architecture should be in CLAUDE.md, not your chat history.
+```
 
+> Pattern types (`boilerplate-request`, `context-re-explanation`, etc.) appear when `ANTHROPIC_API_KEY` is set. Without it, patterns still surface with token estimates — types show as `unclassified`.
+
+```
 $ ai-habits discover
 
-✗ CLAUDE.md — missing
-  Every session starts cold. Claude knows nothing about your project.
-  → Run `claude /init` to create one, then `ai-habits audit` to keep it accurate.
+┌──────────────────────────────┐
+│ ai-habits discover           │
+└──────────────────────────────┘
+Project: /path/to/my-project
 
-✗ Skills — none configured
-  You have 5 repeated patterns that would work as skills (pat-001, pat-002, pat-004).
-  → ai-habits generate skill --id pat-001
+✗ CLAUDE.md
+  Without CLAUDE.md, Claude has no persistent context about your project.
+  You'll keep re-explaining the same things every session.
+  → Run `claude /init` to generate a starter CLAUDE.md, then use `ai-habits audit` to improve it.
 
-✗ MCP Servers — none configured
-  You frequently paste GitHub issue content into conversations.
-  → The GitHub MCP server eliminates this entirely.
+✗ Skills
+  You have 5 repeated patterns that would work as skills (pat-001, pat-002, pat-003 +2 more).
+  Skills let you invoke complex recurring tasks in one command.
+  → Run `ai-habits generate skill --id pat-001` to create a draft from your top pattern.
+
+✗ MCP Servers
+  Based on your conversation history, you're manually providing context that MCP servers
+  could fetch automatically — saving tokens every session.
+    • You reference GitHub content repeatedly — GitHub MCP lets Claude read issues/PRs directly
+  → Add the relevant servers to ~/.claude/settings.json under 'mcpServers'.
+  Browse available servers: https://github.com/modelcontextprotocol/servers
 ```
 
 Then it generates the fixes:
@@ -188,7 +208,7 @@ Shows the conversations where a pattern appeared and what would have been differ
 
 ## LLM classification (optional, recommended)
 
-Without an API key, all clusters are shown. With one, Claude Haiku classifies each cluster and filters noise:
+Without an API key, all clusters are shown with token waste estimates — types show as `unclassified`. With one, Claude Haiku classifies each cluster and assigns meaningful types (`boilerplate-request`, `repeatable-workflow`, `context-re-explanation`) so you know what fix applies:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...

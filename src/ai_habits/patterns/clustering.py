@@ -58,6 +58,38 @@ class Pattern:
         d = self.dates
         return d[-1] if d else None
 
+    @property
+    def wasted_tokens(self) -> tuple[int, int]:
+        """Rough estimate of (input_tokens, output_tokens) wasted by this pattern.
+
+        Input tokens: based on average message length across all occurrences.
+        Output tokens: estimated by category — boilerplate/workflow patterns
+        trigger long responses; context re-explanation only wastes input tokens.
+
+        Rule of thumb: ~4 characters per token (GPT/Claude tokenisers).
+        Output estimates are conservative: ~400 tokens for context replies,
+        ~700 for scaffolding/workflow responses.
+        """
+        if not self.messages:
+            return 0, 0
+
+        avg_chars = sum(len(m.text) for m in self.messages) / len(self.messages)
+        input_per_occurrence = max(1, int(avg_chars / 4))
+        input_total = input_per_occurrence * self.size
+
+        if self.category in ("boilerplate-request",):
+            output_total = 700 * self.size   # scaffold responses are long
+        elif self.category in ("repeatable-workflow",):
+            output_total = 400 * self.size   # workflow back-and-forth
+        elif self.category == "context-re-explanation":
+            output_total = 0                  # waste is in the input, not output
+        else:
+            # Unclassified: conservative estimate — short confirmations cost little,
+            # longer messages likely trigger real responses
+            output_total = min(300, input_per_occurrence * 3) * self.size
+
+        return input_total, output_total
+
 
 def cluster(
     messages: list[Message],

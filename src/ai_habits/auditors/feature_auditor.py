@@ -132,20 +132,97 @@ def _check_mcp(project_path: Path) -> FeatureGap:
             has_mcp = bool(settings.get("mcpServers"))
         except Exception:
             pass
+
+    suggestions = _mcp_suggestions_from_last_scan()
+
+    if suggestions:
+        why = (
+            "Based on your conversation history, you're manually providing context "
+            "that MCP servers could fetch automatically — saving tokens every session.\n"
+            + "\n".join(f"  • {s}" for s in suggestions)
+        )
+        how = (
+            "Add the relevant servers to ~/.claude/settings.json under 'mcpServers'.\n"
+            "Browse available servers: https://github.com/modelcontextprotocol/servers"
+        )
+        severity = "medium"
+    else:
+        why = (
+            "MCP servers let Claude read GitHub issues, query databases, and access "
+            "documentation without you copy-pasting context into the chat."
+        )
+        how = (
+            "Run `ai-habits scan` first to get personalised MCP suggestions, or browse "
+            "available servers: https://github.com/modelcontextprotocol/servers"
+        )
+        severity = "low"
+
     return FeatureGap(
         feature="MCP Servers",
         present=has_mcp,
-        description="Model Context Protocol servers that give Claude access to external tools and data",
-        why_it_matters=(
-            "MCP servers let Claude read GitHub issues, query databases, access documentation — "
-            "without you copy-pasting context."
-        ),
-        how_to_enable=(
-            "See available MCP servers at https://github.com/modelcontextprotocol/servers. "
-            "Add to ~/.claude/settings.json under 'mcpServers'."
-        ),
-        severity="low",
+        description="Tools that let Claude fetch context automatically instead of you pasting it",
+        why_it_matters=why,
+        how_to_enable=how,
+        severity=severity,
     )
+
+
+# MCP server detection rules: (keyword_patterns, server_name, what_it_does)
+_MCP_RULES: list[tuple[list[str], str, str]] = [
+    (
+        ["github", "issue", "pull request", "pr #", "repo", "commit"],
+        "GitHub MCP",
+        "You reference GitHub content repeatedly — GitHub MCP lets Claude read issues/PRs directly",
+    ),
+    (
+        ["select ", "from ", "query", "database", "sql", "postgres", "mysql"],
+        "Database MCP",
+        "You paste query results into conversations — a DB MCP lets Claude query directly",
+    ),
+    (
+        ["docs", "documentation", "api reference", "read the docs", "rtfd"],
+        "Fetch/Browser MCP",
+        "You reference external documentation — Fetch MCP lets Claude read URLs without copy-paste",
+    ),
+    (
+        ["jira", "ticket", "sprint", "confluence"],
+        "Atlassian MCP",
+        "You reference Jira/Confluence content — Atlassian MCP lets Claude access it directly",
+    ),
+    (
+        ["slack", "message", "channel", "dm"],
+        "Slack MCP",
+        "You reference Slack messages — Slack MCP lets Claude read them without copy-paste",
+    ),
+]
+
+
+def _mcp_suggestions_from_last_scan() -> list[str]:
+    """Analyse last scan patterns to suggest specific MCP servers."""
+    scan_path = Path.home() / ".ai-habits" / "last_scan.json"
+    if not scan_path.exists():
+        return []
+
+    try:
+        import json
+        data = json.loads(scan_path.read_text())
+        patterns = data.get("patterns", [])
+
+        # Collect all sample texts from patterns
+        all_text = " ".join(
+            text.lower()
+            for p in patterns
+            for text in p.get("sample_texts", [])
+        )
+
+        suggestions: list[str] = []
+        for keywords, server_name, description in _MCP_RULES:
+            if any(kw in all_text for kw in keywords):
+                suggestions.append(description)
+
+        return suggestions
+    except Exception:
+        return []
 
 
 def _check_local_claude_md(project_path: Path) -> FeatureGap:

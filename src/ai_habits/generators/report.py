@@ -14,7 +14,7 @@ from rich import box
 
 from ai_habits.patterns.clustering import Pattern
 from ai_habits.patterns.anti_patterns import AntiPatternMatch
-from ai_habits.auditors.feature_auditor import FeatureGap
+from ai_habits.auditors.feature_auditor import FeatureGap, SkillMatch
 
 console = Console()
 
@@ -154,14 +154,32 @@ def print_discover_report(gaps: list[FeatureGap], project_path: Path) -> None:
             console.print(f"[{sev_color}]✗[/{sev_color}] [bold]{gap.feature}[/bold]")
             console.print(f"  {gap.why_it_matters}")
 
-            # For MCP gaps with catalog matches, show each server as a table
             if gap.mcp_matches:
                 _print_mcp_matches(gap.mcp_matches)
+            elif gap.skill_matches:
+                _print_skill_matches(gap.skill_matches)
             else:
                 console.print(f"  [green]→ {gap.how_to_enable}[/green]")
             console.print()
     else:
         console.print("\n[green]All tracked Claude Code features are present![/green]\n")
+
+
+def _print_skill_matches(matches: list[SkillMatch]) -> None:
+    """Print a table of matched community skill templates."""
+    table = Table(box=box.SIMPLE, show_header=True, header_style="bold dim", padding=(0, 1))
+    table.add_column("Skill", style="bold yellow", no_wrap=True)
+    table.add_column("What it does", style="dim")
+    table.add_column("Install", style="green")
+
+    for m in matches:
+        table.add_row(
+            m.name,
+            m.description[:55] + ("…" if len(m.description) > 55 else ""),
+            f"ai-habits generate skill --template {m.id}",
+        )
+
+    console.print(table)
 
 
 def _print_mcp_matches(matches: list) -> None:

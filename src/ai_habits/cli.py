@@ -123,6 +123,15 @@ def scan(
         console.print("[dim]Running classification pass...[/dim]")
         patterns = classifier.classify(patterns)
 
+    # Enrich labels with Groq if available (improves skill suggestions)
+    from ai_habits.utils.groq_llm import groq_available, enrich_labels
+    if patterns and groq_available():
+        pat_dicts = [{"id": p.id, "label": p.label, "representative_text": p.representative_text} for p in patterns]
+        enriched = enrich_labels(pat_dicts)
+        for pat, d in zip(patterns, enriched):
+            if d.get("label"):
+                pat.label = d["label"]
+
     anti_pattern_matches = anti_patterns.detect(messages)
 
     # Count sessions
@@ -288,27 +297,60 @@ def generate() -> None:
 
 
 @generate.command("skill")
-@click.option("--id", "pattern_id", required=True, help="Pattern ID from last scan")
+@click.option("--id", "pattern_id", default=None, help="Pattern ID from last scan (e.g. pat-001)")
+@click.option("--template", "template_id", default=None, help="Community skill template ID (e.g. git-commit-push)")
 @click.option("--output-dir", default=None, type=click.Path(path_type=Path))
-def generate_skill(pattern_id: str, output_dir: Path | None) -> None:
-    """Generate a SKILL.md draft from a detected pattern.
+def generate_skill(pattern_id: str | None, template_id: str | None, output_dir: Path | None) -> None:
+    """Generate a SKILL.md from a detected pattern or a community template.
 
     \b
     Examples:
       ai-habits generate skill --id pat-001
+      ai-habits generate skill --template git-commit-push
+      ai-habits generate skill --template lint-test-commit
     """
+    if template_id:
+        _generate_skill_from_template(template_id, output_dir)
+        return
+
+    if not pattern_id:
+        console.print("[red]Provide --id <pattern-id> or --template <template-id>[/red]")
+        raise SystemExit(1)
+
     pattern = _load_pattern(pattern_id)
     if pattern is None:
         return
 
-    from ai_habits.patterns.clustering import Pattern
     from ai_habits.generators.skill_generator import generate_skill as _gen
-    import numpy as np
-
     pat_obj = _dict_to_pattern(pattern)
     path = _gen(pat_obj, output_dir=output_dir)
     console.print(f"[green]Skill draft written:[/green] {path}")
     console.print("[dim]Review and customise before committing.[/dim]\n")
+
+
+def _generate_skill_from_template(template_id: str, output_dir: Path | None) -> None:
+    """Install a community skill template into the project's .claude/skills/ directory."""
+    from ai_habits.auditors.feature_auditor import _load_skills_catalog
+
+    catalog = _load_skills_catalog()
+    entry = next((e for e in catalog if e["id"] == template_id), None)
+
+    if not entry:
+        available = ", ".join(e["id"] for e in catalog)
+        console.print(
+            f"[red]Template '{template_id}' not found.[/red]\n"
+            f"Available: {available}"
+        )
+        raise SystemExit(1)
+
+    dest_dir = (output_dir or Path(".claude") / "skills") / template_id
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    skill_path = dest_dir / "SKILL.md"
+    skill_path.write_text(entry["skill_md"], encoding="utf-8")
+
+    console.print(f"[green]Community skill installed:[/green] {skill_path}")
+    console.print(f"[dim]{entry['description']}[/dim]")
+    console.print(f"[dim]Invoke with: /{template_id}[/dim]\n")
 
 
 @generate.command("patch")

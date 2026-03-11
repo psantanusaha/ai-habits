@@ -2,6 +2,10 @@
 
 Focuses on *feature discovery* — not just "is it missing" but "why it matters
 and what you could do with it based on your usage patterns."
+
+Matching strategy (best available wins):
+  - GROQ_API_KEY set → semantic matching via llama-3.1-8b-instant (intent-aware)
+  - fallback           → keyword matching against catalog entries
 """
 
 from __future__ import annotations
@@ -23,7 +27,20 @@ class McpMatch:
     install: str
     requires_env: list[str]
     docs_url: str
-    hit_count: int = 0       # number of conversation sample texts that matched
+    hit_count: int = 0
+    matched_keywords: list[str] = field(default_factory=list)
+
+
+@dataclass
+class SkillMatch:
+    """A community skill template matched from the catalog."""
+
+    id: str
+    name: str
+    description: str
+    category: str
+    skill_md: str
+    hit_count: int = 0
     matched_keywords: list[str] = field(default_factory=list)
 
 
@@ -37,21 +54,18 @@ class FeatureGap:
     why_it_matters: str
     how_to_enable: str
     severity: str  # "high" | "medium" | "low"
-    mcp_matches: list[McpMatch] = field(default_factory=list)  # populated for MCP gap
+    mcp_matches: list[McpMatch] = field(default_factory=list)
+    skill_matches: list[SkillMatch] = field(default_factory=list)
 
 
 def audit(project_path: Path) -> list[FeatureGap]:
-    """Check for underused Claude Code features in *project_path*.
-
-    Returns a list of :class:`FeatureGap` objects, present and missing.
-    """
+    """Check for underused Claude Code features in *project_path*."""
     gaps: list[FeatureGap] = []
-
     gaps.append(_check_claude_md(project_path))
     gaps.append(_check_skills(project_path))
+    gaps.append(_check_community_skills(project_path))
     gaps.append(_check_mcp(project_path))
     gaps.append(_check_local_claude_md(project_path))
-
     return gaps
 
 
@@ -120,6 +134,37 @@ def _check_skills(project_path: Path) -> FeatureGap:
     )
 
 
+def _check_community_skills(project_path: Path) -> FeatureGap:
+    """Suggest pre-built community skill templates that match usage patterns."""
+    matches = _community_skill_matches_from_last_scan()
+
+    present = not matches  # gap only exists when we have useful suggestions
+    if matches:
+        names = ", ".join(m.name for m in matches[:3])
+        more = f" +{len(matches) - 3} more" if len(matches) > 3 else ""
+        why = (
+            f"{len(matches)} community skill template{'s' if len(matches) != 1 else ''} match your patterns: "
+            f"{names}{more}.\n"
+            "Install any as a ready-made skill instead of building from scratch."
+        )
+        how = (
+            f"Run `ai-habits generate skill --template {matches[0].id}` to install the top match."
+        )
+    else:
+        why = "Community skill templates cover common workflows — run `ai-habits scan` first to find matches."
+        how = "Run `ai-habits scan` then `ai-habits discover` for personalised skill suggestions."
+
+    return FeatureGap(
+        feature="Community Skills",
+        present=present,
+        description="Pre-built skill templates for common developer workflows",
+        why_it_matters=why,
+        how_to_enable=how,
+        severity="medium" if matches else "low",
+        skill_matches=matches,
+    )
+
+
 def _skill_candidates_from_last_scan() -> list[dict]:
     scan_path = Path.home() / ".ai-habits" / "last_scan.json"
     if not scan_path.exists():
@@ -136,7 +181,6 @@ def _skill_candidates_from_last_scan() -> list[dict]:
 
 
 def _check_mcp(project_path: Path) -> FeatureGap:
-    """Check MCP server usage and match conversation history against the catalog."""
     settings_path = Path.home() / ".claude" / "settings.json"
     has_mcp = False
     if settings_path.exists():
@@ -153,7 +197,6 @@ def _check_mcp(project_path: Path) -> FeatureGap:
         total_hits = sum(m.hit_count for m in matches)
         names = ", ".join(m.name for m in matches[:3])
         more = f" +{len(matches) - 3} more" if len(matches) > 3 else ""
-
         why = (
             f"Based on your conversations, {len(matches)} MCP server{'s' if len(matches) != 1 else ''} "
             f"could save you ~{total_hits} copy-paste{'s' if total_hits != 1 else ''} per scan window.\n"
@@ -190,82 +233,6 @@ def _check_mcp(project_path: Path) -> FeatureGap:
     )
 
 
-# ---------------------------------------------------------------------------
-# MCP catalog matching
-# ---------------------------------------------------------------------------
-
-@lru_cache(maxsize=1)
-def _load_catalog() -> list[dict]:
-    """Load mcp_catalog.json bundled with the package."""
-    catalog_path = Path(__file__).parent.parent / "data" / "mcp_catalog.json"
-    try:
-        return json.loads(catalog_path.read_text())
-    except Exception:
-        return []
-
-
-def _mcp_matches_from_last_scan() -> list[McpMatch]:
-    """Match last scan patterns against the MCP catalog.
-
-    Returns McpMatch objects sorted by hit_count descending.
-    """
-    scan_path = Path.home() / ".ai-habits" / "last_scan.json"
-    if not scan_path.exists():
-        return []
-
-    try:
-        data = json.loads(scan_path.read_text())
-        patterns = data.get("patterns", [])
-
-        # Collect all sample texts from every pattern
-        all_texts = [
-            text.lower()
-            for p in patterns
-            for text in p.get("sample_texts", [])
-        ]
-        if not all_texts:
-            return []
-
-        catalog = _load_catalog()
-        matches: list[McpMatch] = []
-
-        for entry in catalog:
-            hit_count = 0
-            matched_kws: list[str] = []
-            for kw in entry["keywords"]:
-                kw_lower = kw.lower()
-                hits = sum(1 for t in all_texts if kw_lower in t)
-                if hits:
-                    hit_count += hits
-                    matched_kws.append(kw)
-
-            if hit_count > 0:
-                matches.append(McpMatch(
-                    id=entry["id"],
-                    name=entry["name"],
-                    description=entry["description"],
-                    replaces=entry["replaces"],
-                    install=entry["install"],
-                    requires_env=entry.get("requires_env", []),
-                    docs_url=entry["docs_url"],
-                    hit_count=hit_count,
-                    matched_keywords=matched_kws,
-                ))
-
-        # Deduplicate by install command (e.g. github + github-actions share same server)
-        seen_installs: set[str] = set()
-        deduped: list[McpMatch] = []
-        for m in sorted(matches, key=lambda x: x.hit_count, reverse=True):
-            if m.install not in seen_installs:
-                seen_installs.add(m.install)
-                deduped.append(m)
-
-        return deduped
-
-    except Exception:
-        return []
-
-
 def _check_local_claude_md(project_path: Path) -> FeatureGap:
     local_dir = project_path / ".claude"
     present = local_dir.is_dir() and any(local_dir.glob("*.md"))
@@ -280,3 +247,193 @@ def _check_local_claude_md(project_path: Path) -> FeatureGap:
         how_to_enable="Create .claude/ in your project root. Add SKILL.md files under .claude/skills/.",
         severity="low",
     )
+
+
+# ---------------------------------------------------------------------------
+# Catalog loading
+# ---------------------------------------------------------------------------
+
+@lru_cache(maxsize=1)
+def _load_mcp_catalog() -> list[dict]:
+    catalog_path = Path(__file__).parent.parent / "data" / "mcp_catalog.json"
+    try:
+        return json.loads(catalog_path.read_text())
+    except Exception:
+        return []
+
+
+@lru_cache(maxsize=1)
+def _load_skills_catalog() -> list[dict]:
+    catalog_path = Path(__file__).parent.parent / "data" / "skills_catalog.json"
+    try:
+        return json.loads(catalog_path.read_text())
+    except Exception:
+        return []
+
+
+def _pattern_texts_from_last_scan() -> list[str]:
+    """Load pattern representative texts from last scan."""
+    scan_path = Path.home() / ".ai-habits" / "last_scan.json"
+    if not scan_path.exists():
+        return []
+    try:
+        data = json.loads(scan_path.read_text())
+        texts = []
+        for p in data.get("patterns", []):
+            samples = p.get("sample_texts", [])
+            if samples:
+                texts.append(samples[0])
+        return texts
+    except Exception:
+        return []
+
+
+def _all_sample_texts_from_last_scan() -> list[str]:
+    scan_path = Path.home() / ".ai-habits" / "last_scan.json"
+    if not scan_path.exists():
+        return []
+    try:
+        data = json.loads(scan_path.read_text())
+        return [
+            text.lower()
+            for p in data.get("patterns", [])
+            for text in p.get("sample_texts", [])
+        ]
+    except Exception:
+        return []
+
+
+# ---------------------------------------------------------------------------
+# MCP matching
+# ---------------------------------------------------------------------------
+
+def _mcp_matches_from_last_scan() -> list[McpMatch]:
+    catalog = _load_mcp_catalog()
+    if not catalog:
+        return []
+
+    pattern_texts = _pattern_texts_from_last_scan()
+
+    # Try Groq semantic matching first
+    from ai_habits.utils.groq_llm import groq_available, semantic_match
+    if groq_available() and pattern_texts:
+        matched_ids = semantic_match(pattern_texts, catalog, context="MCP servers")
+        if matched_ids:
+            id_to_entry = {e["id"]: e for e in catalog}
+            return [
+                McpMatch(
+                    id=mid,
+                    name=id_to_entry[mid]["name"],
+                    description=id_to_entry[mid]["description"],
+                    replaces=id_to_entry[mid]["replaces"],
+                    install=id_to_entry[mid]["install"],
+                    requires_env=id_to_entry[mid].get("requires_env", []),
+                    docs_url=id_to_entry[mid]["docs_url"],
+                )
+                for mid in matched_ids if mid in id_to_entry
+            ]
+
+    # Fallback: keyword matching
+    return _keyword_match_mcp(catalog)
+
+
+def _keyword_match_mcp(catalog: list[dict]) -> list[McpMatch]:
+    all_texts = _all_sample_texts_from_last_scan()
+    if not all_texts:
+        return []
+
+    matches: list[McpMatch] = []
+    for entry in catalog:
+        hit_count = 0
+        matched_kws: list[str] = []
+        for kw in entry["keywords"]:
+            kw_lower = kw.lower()
+            hits = sum(1 for t in all_texts if kw_lower in t)
+            if hits:
+                hit_count += hits
+                matched_kws.append(kw)
+
+        if hit_count > 0:
+            matches.append(McpMatch(
+                id=entry["id"],
+                name=entry["name"],
+                description=entry["description"],
+                replaces=entry["replaces"],
+                install=entry["install"],
+                requires_env=entry.get("requires_env", []),
+                docs_url=entry["docs_url"],
+                hit_count=hit_count,
+                matched_keywords=matched_kws,
+            ))
+
+    # Deduplicate by install command
+    seen_installs: set[str] = set()
+    deduped: list[McpMatch] = []
+    for m in sorted(matches, key=lambda x: x.hit_count, reverse=True):
+        if m.install not in seen_installs:
+            seen_installs.add(m.install)
+            deduped.append(m)
+
+    return deduped
+
+
+# ---------------------------------------------------------------------------
+# Community skills matching
+# ---------------------------------------------------------------------------
+
+def _community_skill_matches_from_last_scan() -> list[SkillMatch]:
+    catalog = _load_skills_catalog()
+    if not catalog:
+        return []
+
+    pattern_texts = _pattern_texts_from_last_scan()
+
+    # Try Groq semantic matching first
+    from ai_habits.utils.groq_llm import groq_available, semantic_match
+    if groq_available() and pattern_texts:
+        matched_ids = semantic_match(pattern_texts, catalog, context="developer workflow skills")
+        if matched_ids:
+            id_to_entry = {e["id"]: e for e in catalog}
+            return [
+                SkillMatch(
+                    id=mid,
+                    name=id_to_entry[mid]["name"],
+                    description=id_to_entry[mid]["description"],
+                    category=id_to_entry[mid]["category"],
+                    skill_md=id_to_entry[mid]["skill_md"],
+                )
+                for mid in matched_ids if mid in id_to_entry
+            ]
+
+    # Fallback: keyword matching
+    return _keyword_match_skills(catalog)
+
+
+def _keyword_match_skills(catalog: list[dict]) -> list[SkillMatch]:
+    all_texts = _all_sample_texts_from_last_scan()
+    if not all_texts:
+        return []
+
+    matches: list[SkillMatch] = []
+    for entry in catalog:
+        hit_count = 0
+        matched_kws: list[str] = []
+        for kw in entry["keywords"]:
+            kw_lower = kw.lower()
+            hits = sum(1 for t in all_texts if kw_lower in t)
+            if hits:
+                hit_count += hits
+                matched_kws.append(kw)
+
+        if hit_count > 0:
+            matches.append(SkillMatch(
+                id=entry["id"],
+                name=entry["name"],
+                description=entry["description"],
+                category=entry["category"],
+                skill_md=entry["skill_md"],
+                hit_count=hit_count,
+                matched_keywords=matched_kws,
+            ))
+
+    return sorted(matches, key=lambda x: x.hit_count, reverse=True)[:6]

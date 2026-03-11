@@ -1,0 +1,162 @@
+[
+  {
+    "id": "git-commit-push",
+    "name": "Git commit and push",
+    "category": "workflow",
+    "description": "Stage changes, write a commit message, and push to remote",
+    "keywords": ["commit", "git commit", "commit and push", "can you commit", "push to github", "push the changes"],
+    "skill_md": "---\ndescription: Stage all changes, generate a commit message, and push to the current branch.\n---\n\nStage all modified files, write a clear and concise commit message that describes what changed and why, then push to the current remote branch.\n\nCommit message format:\n- First line: imperative mood, max 72 chars (e.g. \"Add user authentication endpoint\")\n- If needed: blank line then bullet points for details\n\nDo not use --no-verify. If pre-commit hooks fail, fix the issue first."
+  },
+  {
+    "id": "pr-open",
+    "name": "Open a pull request",
+    "category": "workflow",
+    "description": "Push current branch and open a GitHub PR with a summary",
+    "keywords": ["open pr", "create pr", "pull request", "raise a pr", "submit pr", "open a pull request"],
+    "skill_md": "---\ndescription: Push the current branch and open a GitHub pull request with a generated title and body.\n---\n\nPush the current branch to remote, then create a pull request using `gh pr create`.\n\nThe PR should include:\n- A concise title (under 70 chars) summarising the change\n- A body with: what changed, why, and a short test plan\n- Link to any relevant issues\n\nUse `gh pr create --fill` as a starting point then improve the description."
+  },
+  {
+    "id": "git-stash-rebase",
+    "name": "Stash, pull, and rebase",
+    "category": "workflow",
+    "description": "Stash local changes, pull latest main, rebase, and restore",
+    "keywords": ["stash", "git stash", "pull and rebase", "sync with main", "rebase on main", "get latest"],
+    "skill_md": "---\ndescription: Stash uncommitted changes, pull latest from main, rebase the current branch, then restore the stash.\n---\n\nRun in order:\n1. `git stash` to save local changes\n2. `git fetch origin`\n3. `git rebase origin/main`\n4. `git stash pop` to restore changes\n\nIf there are rebase conflicts, pause and ask the user how to resolve them. Never force-push unless the user explicitly asks."
+  },
+  {
+    "id": "lint-test-commit",
+    "name": "Lint, test, and commit",
+    "category": "workflow",
+    "description": "Run linter, run tests, then commit if both pass",
+    "keywords": ["lint then test", "run lint", "lint and test", "run tests then commit", "lint test commit", "check then commit"],
+    "skill_md": "---\ndescription: Run the linter, run tests, and commit only if both pass.\n---\n\nRun in order:\n1. Run the linter (detect from project: ruff, eslint, flake8, etc.)\n2. Run the test suite (detect from project: pytest, jest, go test, etc.)\n3. If both pass: stage and commit with a descriptive message\n4. If either fails: show the errors and stop — do not commit\n\nNever skip failing checks."
+  },
+  {
+    "id": "docker-build-run",
+    "name": "Docker build and run",
+    "category": "workflow",
+    "description": "Build the Docker image and run it locally",
+    "keywords": ["docker build", "build docker", "run docker", "docker run", "build and run", "docker image"],
+    "skill_md": "---\ndescription: Build the Docker image from the local Dockerfile and run it.\n---\n\n1. `docker build -t <project-name>:<tag> .`\n2. `docker run --rm -p <host-port>:<container-port> <project-name>:<tag>`\n\nDetect the correct port from: Dockerfile EXPOSE, docker-compose.yml, or the app config.\nUse `--env-file .env` if a .env file exists."
+  },
+  {
+    "id": "fastapi-scaffold",
+    "name": "FastAPI project scaffold",
+    "category": "scaffold",
+    "description": "Generate a FastAPI project structure with Docker, tests, and CI",
+    "keywords": ["fastapi", "fastapi project", "fastapi scaffold", "create fastapi", "new fastapi", "fastapi with docker"],
+    "skill_md": "---\ndescription: Scaffold a production-ready FastAPI project with Docker, pytest, and GitHub Actions CI.\n---\n\nGenerate the following structure:\n```\napp/\n  main.py          # FastAPI app with health endpoint\n  routers/         # Route modules\n  models/          # Pydantic models\n  dependencies.py  # Shared dependencies\ntests/\n  test_main.py\nDockerfile\ndocker-compose.yml\n.github/workflows/ci.yml\nrequirements.txt\n.env.example\n```\n\nInclude: async endpoints, proper error handling, CORS middleware, structured logging."
+  },
+  {
+    "id": "django-scaffold",
+    "name": "Django app scaffold",
+    "category": "scaffold",
+    "description": "Generate a Django app with models, views, serializers, and tests",
+    "keywords": ["django", "django app", "django scaffold", "create django", "new django app", "django rest"],
+    "skill_md": "---\ndescription: Scaffold a new Django app with models, views, serializers (DRF), and tests.\n---\n\nGenerate:\n- models.py with the described model + __str__ + Meta\n- serializers.py (DRF ModelSerializer)\n- views.py (ViewSet or APIView)\n- urls.py with router registration\n- tests/test_<app>.py with CRUD test cases\n- admin.py registration\n\nFollow the project's existing patterns for field naming and imports."
+  },
+  {
+    "id": "react-component",
+    "name": "React component scaffold",
+    "category": "scaffold",
+    "description": "Generate a React component with TypeScript, tests, and Storybook story",
+    "keywords": ["react component", "create component", "new component", "react tsx", "component with tests"],
+    "skill_md": "---\ndescription: Generate a React component with TypeScript, a test file, and a Storybook story.\n---\n\nGenerate:\n- `src/components/<Name>/<Name>.tsx` — functional component with typed props\n- `src/components/<Name>/<Name>.test.tsx` — React Testing Library tests\n- `src/components/<Name>/<Name>.stories.tsx` — Storybook story (if Storybook exists)\n- `src/components/<Name>/index.ts` — barrel export\n\nUse the project's existing patterns for styling (CSS modules, Tailwind, styled-components)."
+  },
+  {
+    "id": "pytest-run-coverage",
+    "name": "Run tests with coverage",
+    "category": "workflow",
+    "description": "Run pytest with coverage report and show failures clearly",
+    "keywords": ["run tests", "run pytest", "pytest", "test coverage", "run the tests", "coverage report"],
+    "skill_md": "---\ndescription: Run pytest with coverage and display a summary of failures and coverage gaps.\n---\n\n```\npytest --cov=src --cov-report=term-missing --tb=short -q\n```\n\nAfter running:\n- Summarise which tests failed and why\n- Flag any modules with coverage below 80%\n- Suggest what to test next if coverage is low"
+  },
+  {
+    "id": "db-migration",
+    "name": "Database migration",
+    "category": "workflow",
+    "description": "Generate and apply a database migration",
+    "keywords": ["migration", "db migration", "database migration", "alembic", "makemigrations", "migrate"],
+    "skill_md": "---\ndescription: Generate and apply a database migration (detects Alembic, Django, or Prisma).\n---\n\nDetect the migration tool from the project:\n- **Django**: `python manage.py makemigrations && python manage.py migrate`\n- **Alembic**: `alembic revision --autogenerate -m \"<description>\" && alembic upgrade head`\n- **Prisma**: `npx prisma migrate dev --name <description>`\n\nBefore running: check for pending migrations that haven't been applied.\nAfter running: confirm the migration succeeded and show the schema diff."
+  },
+  {
+    "id": "code-review",
+    "name": "Review this code",
+    "category": "analysis",
+    "description": "Review the current file or selection for bugs, style, and improvements",
+    "keywords": ["review this", "code review", "review the code", "check this code", "look at this code", "any issues"],
+    "skill_md": "---\ndescription: Review the specified code for correctness, security, style, and improvements.\n---\n\nReview the code for:\n1. **Bugs**: logic errors, off-by-one, null/undefined cases, unhandled exceptions\n2. **Security**: injection, exposed secrets, improper auth, insecure defaults\n3. **Performance**: N+1 queries, unnecessary allocations, blocking I/O\n4. **Style**: naming, complexity, duplication (follow project conventions)\n5. **Tests**: missing test cases for edge cases\n\nBe specific: include line numbers and concrete suggestions, not vague observations."
+  },
+  {
+    "id": "explain-code",
+    "name": "Explain this code",
+    "category": "analysis",
+    "description": "Explain what a piece of code does in plain language",
+    "keywords": ["explain this", "what does this do", "explain the code", "walk me through", "how does this work"],
+    "skill_md": "---\ndescription: Explain what the specified code does in plain language, including intent and edge cases.\n---\n\nExplain:\n1. What the code does at a high level (1-2 sentences)\n2. How it works step by step\n3. Any non-obvious design decisions or gotchas\n4. What happens in edge cases (null, empty, large input)\n\nUse simple language. Avoid restating the code line by line."
+  },
+  {
+    "id": "refactor",
+    "name": "Refactor for readability",
+    "category": "analysis",
+    "description": "Refactor code to be simpler, cleaner, and more readable without changing behaviour",
+    "keywords": ["refactor", "clean up", "simplify this", "make this cleaner", "improve readability", "this is messy"],
+    "skill_md": "---\ndescription: Refactor the code to improve readability and maintainability without changing behaviour.\n---\n\nApply only changes that improve clarity:\n- Extract functions for complex logic (max 20 lines per function)\n- Rename variables to be descriptive\n- Remove duplication (3+ repeated lines → shared function)\n- Simplify conditionals\n- Add types/annotations if missing\n\nDo NOT change behaviour, add new features, or fix bugs unless they're directly caused by the refactoring. Show a brief summary of what changed."
+  },
+  {
+    "id": "env-setup",
+    "name": "Environment setup",
+    "category": "scaffold",
+    "description": "Set up local dev environment from scratch (venv, deps, .env)",
+    "keywords": ["set up", "setup the project", "local setup", "install dependencies", "get this running", "environment setup"],
+    "skill_md": "---\ndescription: Set up the local development environment for this project from scratch.\n---\n\nDetect the project type and run the appropriate setup:\n- **Python**: `python -m venv .venv && source .venv/bin/activate && pip install -e '.[dev]'`\n- **Node**: `npm install` or `pnpm install` or `yarn`\n- **Go**: `go mod download`\n\nThen:\n1. Copy `.env.example` to `.env` and flag any missing required values\n2. Run the test suite to verify the setup works\n3. Show a summary of what was set up and what still needs manual configuration"
+  },
+  {
+    "id": "debug-error",
+    "name": "Debug this error",
+    "category": "analysis",
+    "description": "Diagnose an error or stack trace and suggest fixes",
+    "keywords": ["debug", "this error", "fix this", "stack trace", "traceback", "error message", "why is this failing"],
+    "skill_md": "---\ndescription: Diagnose the error or stack trace and suggest targeted fixes.\n---\n\n1. Identify the root cause (not just the symptom)\n2. Explain why the error is happening\n3. Suggest 1-3 concrete fixes, from most to least likely\n4. If the fix requires changes, show the diff\n\nDo not suggest \"try restarting\" or other generic advice. Be specific about the cause."
+  },
+  {
+    "id": "write-tests",
+    "name": "Write tests for this",
+    "category": "analysis",
+    "description": "Write unit or integration tests for existing code",
+    "keywords": ["write tests", "add tests", "test this", "missing tests", "no tests", "test coverage"],
+    "skill_md": "---\ndescription: Write tests for the specified code using the project's test framework.\n---\n\nDetect the test framework (pytest, jest, go test, etc.) and write tests that cover:\n1. The happy path\n2. Edge cases (empty, null, max, min)\n3. Error cases (invalid input, missing data)\n4. Any non-obvious behaviour from the implementation\n\nFollow the project's test naming conventions and file structure.\nDo not test implementation details — test observable behaviour."
+  },
+  {
+    "id": "deploy-staging",
+    "name": "Deploy to staging",
+    "category": "workflow",
+    "description": "Build and deploy the current branch to the staging environment",
+    "keywords": ["deploy", "deploy to staging", "staging deploy", "push to staging", "release to staging"],
+    "skill_md": "---\ndescription: Build and deploy the current branch to the staging environment.\n---\n\nDetect the deploy mechanism from the project (Dockerfile + cloud CLI, Vercel, Heroku, etc.):\n\n- **Vercel**: `vercel --env staging`\n- **Docker + GCP Cloud Run**: `gcloud builds submit && gcloud run deploy --region ... --image ...`\n- **Heroku**: `git push heroku main`\n\nAfter deploying: show the staging URL and run a basic health check."
+  },
+  {
+    "id": "api-endpoint",
+    "name": "Add an API endpoint",
+    "category": "scaffold",
+    "description": "Add a new REST API endpoint with request/response models and tests",
+    "keywords": ["add endpoint", "new endpoint", "create endpoint", "api endpoint", "rest endpoint", "add a route"],
+    "skill_md": "---\ndescription: Add a new REST API endpoint with typed request/response models and a test.\n---\n\nFor the described endpoint:\n1. Define request and response models (Pydantic, TypeScript types, etc.)\n2. Implement the endpoint handler\n3. Register the route\n4. Write at least one happy-path test and one error-case test\n5. Update the OpenAPI/Swagger schema if applicable\n\nFollow the project's existing patterns for auth, error handling, and logging."
+  },
+  {
+    "id": "changelog-release",
+    "name": "Prepare a release",
+    "category": "workflow",
+    "description": "Generate a changelog from commits and bump the version",
+    "keywords": ["release", "changelog", "bump version", "new release", "version bump", "prepare release"],
+    "skill_md": "---\ndescription: Generate a changelog from recent commits and bump the version number.\n---\n\n1. Run `git log <last-tag>..HEAD --oneline` to get commits since last release\n2. Group commits by type: Features, Bug Fixes, Breaking Changes, Other\n3. Generate a CHANGELOG.md entry in Keep-a-Changelog format\n4. Bump the version in pyproject.toml / package.json / Cargo.toml (detect from project)\n5. Commit the changelog and version bump: `chore: release v<version>`\n6. Tag the commit: `git tag v<version>`"
+  },
+  {
+    "id": "security-audit",
+    "name": "Security audit",
+    "category": "analysis",
+    "description": "Check the codebase for common security vulnerabilities",
+    "keywords": ["security", "security audit", "vulnerability", "insecure", "security check", "owasp", "secure this"],
+    "skill_md": "---\ndescription: Audit the code for common security vulnerabilities.\n---\n\nCheck for OWASP Top 10 and common issues:\n1. **Injection**: SQL, command, LDAP injection vectors\n2. **Auth**: hardcoded secrets, weak tokens, missing auth on endpoints\n3. **Exposure**: sensitive data in logs, responses, or error messages\n4. **Dependencies**: known vulnerable packages (run `pip audit` / `npm audit`)\n5. **Input validation**: missing sanitization, type coercion issues\n6. **CORS/headers**: misconfigured security headers\n\nFor each finding: severity (High/Medium/Low), location, and concrete fix."
+  }
+]

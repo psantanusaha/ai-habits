@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "ai-habits"
-version = "0.1.1"
+version = "0.1.2"
 description = "ESLint for your AI assistant usage — scan conversation history, find patterns, generate fixes"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -39,13 +39,18 @@ dependencies = [
 ml = [
     "sentence-transformers>=3.0",
 ]
-# Required for LLM classification pass
+# Groq: semantic MCP/skill matching + better pattern labels (free tier, fast)
+groq = [
+    "groq>=0.9",
+]
+# Anthropic: LLM classification pass
 llm = [
     "anthropic>=0.25",
 ]
 # Install everything
 all = [
     "sentence-transformers>=3.0",
+    "groq>=0.9",
     "anthropic>=0.25",
 ]
 # CI-safe — no PyTorch, sklearn is already in core deps
